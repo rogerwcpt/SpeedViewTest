@@ -4,6 +4,10 @@
 
 To establish the Labels per second that the respective Android and iOS implementations of Xamarin Forms can render.
 
+## Screenshot
+
+![iPhone XR](screenshot.jpeg)
+
 ## Statistics
 
 ### Phone Model: iPhone XR
