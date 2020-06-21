@@ -72,12 +72,12 @@ namespace SpeedViewTest
             Grid.SetColumnSpan(_absoluteLayout, 2);
             grid.Children.Add(_absoluteLayout);
 
-            _startButton = new Button() { Text = "Start", Margin = new Thickness(10), HorizontalOptions = LayoutOptions.Start };
+            _startButton = new Button() { Text = "Start", Margin = new Thickness(10), HorizontalOptions = LayoutOptions.Start, VerticalOptions = LayoutOptions.Center };
             _startButton.Clicked += StartButton_Clicked;
             Grid.SetRow(_startButton, 2);
             Grid.SetColumn(_startButton, 0);
 
-            _stopButton = new Button() { Text = "Stop", Margin = new Thickness(10), HorizontalOptions = LayoutOptions.End };
+            _stopButton = new Button() { Text = "Stop", Margin = new Thickness(10), HorizontalOptions = LayoutOptions.End, VerticalOptions = LayoutOptions.Center };
             _stopButton.Clicked += StopButton_Clicked;
             Grid.SetRow(_stopButton, 2);
             Grid.SetColumn(_stopButton, 1);
@@ -140,7 +140,6 @@ namespace SpeedViewTest
         private void StopButton_Clicked(object sender, EventArgs e)
         {
             _isTestRunning = false;
-            _absoluteLayout.Children.Clear();
             _stopWatch.Stop();
             OutputCalculatedRate(true);
         }
@@ -154,7 +153,7 @@ namespace SpeedViewTest
                 _snapShot = _stopWatch.ElapsedMilliseconds;
                 var elapsedSeconds = _stopWatch.Elapsed.TotalSeconds;
                 var averageLabelsPerSecond = _totalElements / elapsedSeconds;
-                var labelText = $"Avg Labels/s: {averageLabelsPerSecond}";
+                var labelText = $"Avg Labels/s: {averageLabelsPerSecond:F2}";
                 _captionLabel.Text = labelText;
             }
         }
