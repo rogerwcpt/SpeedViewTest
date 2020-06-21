@@ -141,19 +141,29 @@ namespace SpeedViewTest
         {
             _isTestRunning = false;
             _stopWatch.Stop();
-            OutputCalculatedRate(true);
+            double averageLabelsPerSecond = outputTotalAverageRate();
+            _captionLabel.Text = $"Average Labels/sec: {averageLabelsPerSecond:F2}";
         }
 
-        private void OutputCalculatedRate(bool forceUpdate = false)
+        private double outputTotalAverageRate()
+        {
+            var now = DateTime.Now;
+            var ticksAtStart = now.Ticks - _stopWatch.ElapsedTicks;
+            var elapsedTime = now - new DateTime(ticksAtStart);
+            var averageLabelsPerSecond = _totalElements / elapsedTime.TotalSeconds;
+            return averageLabelsPerSecond;
+        }
+
+        private void OutputCalculatedRate()
         {
             var elapsed = _stopWatch.ElapsedMilliseconds - _snapShot;
             var takeTime = elapsed > 1000;
-            if (forceUpdate || takeTime)
+            if (takeTime)
             {
                 _snapShot = _stopWatch.ElapsedMilliseconds;
                 var elapsedSeconds = _stopWatch.Elapsed.TotalSeconds;
                 var averageLabelsPerSecond = _totalElements / elapsedSeconds;
-                var labelText = $"Avg Labels/s: {averageLabelsPerSecond:F2}";
+                var labelText = $"Labels/sec: {averageLabelsPerSecond:F2}";
                 _captionLabel.Text = labelText;
             }
         }
@@ -181,7 +191,9 @@ namespace SpeedViewTest
 
                     if (!_checkReuseChildren.IsChecked)
                     {
-                        _absoluteLayout.Children.RemoveAt(0);
+                        var labelToRemove = (Label)_absoluteLayout.Children[0];
+                        _absoluteLayout.Children.Remove(labelToRemove);
+                        labelToRemove = null; // 
                     }
                     _captionLabel.BackgroundColor = Color.Orange;
                 }
