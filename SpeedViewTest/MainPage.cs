@@ -25,6 +25,7 @@ namespace SpeedViewTest
         private const int ThresholdDefault = 100;
         private int Threshold = ThresholdDefault;
         private Label _theshholdLabel;
+        private CheckBox _checkReuseChildren;
         private static readonly TimeSpan RefreshRate = TimeSpan.FromMilliseconds(1);
 
         public MainPage()
@@ -83,19 +84,34 @@ namespace SpeedViewTest
 
             _theshholdLabel = new Label()
             {
-                Text = Threshold.ToString(),
-                TextColor = Color.White,
+                Text = $"Threshold: {Threshold}",
+                TextColor = Color.Orange,
                 HorizontalOptions = LayoutOptions.Center,
-                VerticalOptions = LayoutOptions.CenterAndExpand,
+                VerticalOptions = LayoutOptions.Start,
                 HorizontalTextAlignment = TextAlignment.Center,
-                VerticalTextAlignment = TextAlignment.Center
             };
             Grid.SetRow(_theshholdLabel, 2);
             Grid.SetColumnSpan(_theshholdLabel, 2);
 
+            var stackLayout = new StackLayout
+            {
+                Orientation = StackOrientation.Horizontal,
+                BackgroundColor = Color.Orange,
+                 HorizontalOptions = LayoutOptions.Center,
+                VerticalOptions = LayoutOptions.End,
+            };
+
+            _checkReuseChildren = new CheckBox() { IsChecked = true };
+            stackLayout.Children.Add(_checkReuseChildren);
+            stackLayout.Children.Add(new Label { Text = "Re-Use Children on Threshold" , TextColor =Color.White, VerticalOptions = LayoutOptions.Center, Margin =new Thickness(0, 0, 10, 0) });
+
+            Grid.SetRow(stackLayout, 2);
+            Grid.SetColumnSpan(stackLayout, 2);
+
             grid.Children.Add(_startButton);
             grid.Children.Add(_stopButton);
             grid.Children.Add(_theshholdLabel);
+            grid.Children.Add(stackLayout);
 
             var slider = new Xamarin.Forms.Slider
             {
@@ -118,7 +134,7 @@ namespace SpeedViewTest
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
             Threshold = (int)e.NewValue;
-            _theshholdLabel.Text = Threshold.ToString();
+            _theshholdLabel.Text = $"Threshold: {Threshold}";
         }
 
         private void StopButton_Clicked(object sender, EventArgs e)
@@ -129,23 +145,17 @@ namespace SpeedViewTest
             OutputCalculatedRate(true);
         }
 
-        private void OutputCalculatedRate(bool setCaption = true)
+        private void OutputCalculatedRate(bool forceUpdate = false)
         {
             var elapsed = _stopWatch.ElapsedMilliseconds - _snapShot;
             var takeTime = elapsed > 1000;
-            if (takeTime)
+            if (forceUpdate || takeTime)
             {
                 _snapShot = _stopWatch.ElapsedMilliseconds;
-                Debug.WriteLine("Elapsed Time: " + elapsed);
-
                 var elapsedSeconds = _stopWatch.Elapsed.TotalSeconds;
                 var averageLabelsPerSecond = _totalElements / elapsedSeconds;
                 var labelText = $"Avg Labels/s: {averageLabelsPerSecond}";
-                Debug.WriteLine(labelText);
-                if (setCaption)
-                {
-                    _captionLabel.Text = labelText;
-                }
+                _captionLabel.Text = labelText;
             }
         }
 
@@ -169,6 +179,11 @@ namespace SpeedViewTest
                     {
                         _replaceIndex = 0;
                     }
+
+                    if (!_checkReuseChildren.IsChecked)
+                    {
+                        _absoluteLayout.Children.RemoveAt(0);
+                    }
                     _captionLabel.BackgroundColor = Color.Orange;
                 }
                 else
@@ -176,26 +191,18 @@ namespace SpeedViewTest
                     _replaceIndex = -1;
                 }
 
-                var label = new Label
-                {
-                    Text = $"Label {_totalElements + 1}",
-                    TextColor = new Color(_random.NextDouble(), _random.NextDouble(), _random.NextDouble()),
-                    Rotation = _random.NextDouble() * 360
-                };
+                Label label;
 
-                AbsoluteLayout.SetLayoutFlags(label, AbsoluteLayoutFlags.PositionProportional);
-                AbsoluteLayout.SetLayoutBounds(label, new Rectangle(_random.NextDouble(), _random.NextDouble(), 80, 24));
 
-                if (_replaceIndex > -1)
+                if (_checkReuseChildren.IsChecked && _replaceIndex > -1)
                 {
-                    var oldLabel = (Label)_absoluteLayout.Children[_replaceIndex];
-                    oldLabel.Parent = null;
-                    _absoluteLayout.Children[_replaceIndex] = label;
-                    oldLabel = null;
-                    GC.Collect();
+                    label = (Label)_absoluteLayout.Children[_replaceIndex];
+                    SetLabelAttributes(label);
                 }
                 else
                 {
+                    label = new Label();
+                    SetLabelAttributes(label);
                     _absoluteLayout.Children.Add(label);
                 }
 
@@ -207,6 +214,15 @@ namespace SpeedViewTest
                 await Task.Delay(RefreshRate);
 
             }
+        }
+
+        private void SetLabelAttributes(Label label)
+        {
+            label.Text = $"Label {_totalElements + 1}";
+            label.TextColor = new Color(_random.NextDouble(), _random.NextDouble(), _random.NextDouble());
+            label.Rotation = _random.NextDouble() * 360;
+            AbsoluteLayout.SetLayoutFlags(label, AbsoluteLayoutFlags.PositionProportional);
+            AbsoluteLayout.SetLayoutBounds(label, new Rectangle(_random.NextDouble(), _random.NextDouble(), 120, 24));
         }
 
         private void InitializeTest()
